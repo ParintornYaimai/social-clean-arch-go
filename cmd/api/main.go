@@ -1,14 +1,21 @@
 package main
 
-import "log"
+import (
+	"log"
+
+	"github.com/ParintornYaimai/socialmedia-go/internal/env"
+	"github.com/ParintornYaimai/socialmedia-go/internal/store"
+)
 
 func main() {
 	cfg := config{
-		addr: ":8080",
+		addr: env.GetString("ADDR", ":8080"),
 	}
 
+	store := store.NewPostgrestStorage(nil)
 	app := &application{
 		config: cfg,
+		store:  store,
 	}
 
 	mux := app.mount()
