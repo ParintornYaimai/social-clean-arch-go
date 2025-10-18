@@ -1,0 +1,32 @@
+# Binaries
+/bin/
+/*.exe
+/*.exe~
+/*.dll
+/*.so
+/*.dylib
+
+# Output of build
+/build/
+/out/
+
+# Dependency directories (if not using Go modules)
+vendor/
+
+# Test data
+/testdata/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
