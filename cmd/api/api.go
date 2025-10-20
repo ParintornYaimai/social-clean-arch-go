@@ -14,6 +14,7 @@ type (
 	config struct {
 		addr string
 		db   dbConfig
+		env  string
 	}
 
 	dbConfig struct {
