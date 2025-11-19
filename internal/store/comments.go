@@ -1,0 +1,50 @@
+package store
+
+import (
+	"context"
+	"database/sql"
+)
+
+type Comment struct {
+	ID        int64  `json:"id"`
+	PostID    int64  `json:"post_id"`
+	UserID    int64  `json:"post_id"`
+	Content   string `json:"content"`
+	CreateAt  string `json:"created_at"`
+	UpdatedAt string `json:"updated_at`
+	User      User   `json:"User"`
+}
+
+type CommentStore struct {
+	db *sql.DB
+}
+
+func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment, error) {
+	query := `
+		SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username, users.id FROM comments c JOIN users on user.id = comments.user_id
+		WHERE comments.post_id = 2 
+		ORDER BY comments.created_at DESC
+	`
+
+	rows, err := s.db.QueryContext(ctx, query, postID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	comments := []Comment{}
+
+	for row.Next() {
+		var c Comment
+		c.User = User{}
+		err := rows.Scan(&c.ID, &c.PostID, &c.UserID, &c.Content, &c.CreateAt, &c.User.Username)
+
+		if err != nil {
+			return nil, err
+		}
+		comments = append(comments, c)
+	}
+
+	return comments, err
+}

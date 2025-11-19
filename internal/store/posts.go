@@ -17,6 +17,7 @@ type Post struct {
 	Tags      []string  `json:"tags"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Comments  []Comment `json:"Comments"`
 }
 
 type PostsStore struct {
@@ -51,7 +52,7 @@ var (
 	ErrNotFound = errors.New("record not found")
 )
 
-func (s *PostsStore) GetById(ctx context.Context, id *GetPost) (*Post, error) {
+func (s *PostsStore) GetById(ctx context.Context, id int64) (*Post, error) {
 	query := `SELECT * FROM post WHERE id = $id`
 
 	var post Post
