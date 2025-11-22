@@ -133,18 +133,24 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := app.store.Posts.Update(ctx, id, payload); err != nil {
-		switch {
-		case errors.Is(err, store.ErrNotFound):
-			app.badRequestResponse(w, r, err)
-
-		default:
-			app.internalServerError(w, r, err)
-		}
-		return
+	updatePayload := &store.Update{
+		Title:   payload.Title,
+		Content: payload.Content,
+		Tags:    payload.Tags,
 	}
 
-	if err := writeJSON(w, http.StatusOK, payload); err != nil {
+	updatedPost, err := app.store.Posts.Update(ctx, id, updatePayload)
+	if err != nil {
+
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.notFoundResponse(w, r, err)
+		default:
+			writeJSONError(w, http.StatusInternalServerError, err.Error())
+		}
+	}
+
+	if err := writeJSON(w, http.StatusOK, updatedPost); err != nil {
 		writeJSONError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
