@@ -90,3 +90,35 @@ func (s *PostsStore) Delete(ctx context.Context, postID int64) error {
 	return nil
 
 }
+
+type Update struct {
+	Content string   `json:"content"`
+	Title   string   `json:"title"`
+	Tags    []string `json:"tags"`
+}
+
+func (s *PostsStore) Update(ctx context.Context, postID int64, payload *Update) (*Post, error) {
+	query := `
+		UPDATE post
+		SET Title = $1, Content = $2, Tag = $3
+		WHERE id = $4
+		RETURNING id, title, content, tags, user_id, created_at, updated_at
+	`
+
+	var post Post
+	err := s.db.QueryRowContext(ctx, query,
+		payload.Title,
+		payload.Content,
+		pq.Array(payload.Tags),
+		postID,
+	).Scan(&post.ID, &post.Title, &post.Content, pq.Array(&post.Tags), &post.UserID, &post.CreatedAt, &post.UpdatedAt)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	return &post, nil
+}
