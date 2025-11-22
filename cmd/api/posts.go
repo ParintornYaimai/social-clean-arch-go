@@ -19,7 +19,6 @@ type CreatePostPlayload struct {
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPlayload
 	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestResponse(w, r, err)
 		writeJSONError(w, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -68,7 +67,7 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post, err := app.store.Posts.GetById(ctx, id)
 	if err != nil {
 		switch {
-		case errors.Is(err, store.ErrNotFound): //errors.Is ใช้ตรวจสอบว่า error ตรงกับ error ที่เราสนใจหรือไม่
+		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r, err)
 		default:
 			app.internalServerError(w, r, err)
@@ -113,6 +112,41 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (app *application) updatePostHandler() (w http.ResponseWriter, r http.Request) {
+func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	idParams := chi.URLParam(r, "postID")
+	id, err := strconv.ParseInt(idParams, 10, 64)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	var payload CreatePostPlayload
+	if err := readJSON(w, r, &payload); err != nil {
+		writeJSONError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := app.store.Posts.Update(ctx, id, payload); err != nil {
+		switch {
+		case errors.Is(err, store.ErrNotFound):
+			app.badRequestResponse(w, r, err)
+
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	if err := writeJSON(w, http.StatusOK, payload); err != nil {
+		writeJSONError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 }
